@@ -1,0 +1,71 @@
+
+
+from ibm_watsonx_ai import Credentials, APIClient
+from dotenv import load_dotenv
+from ibm_watsonx_ai.foundation_models import ModelInference
+import config
+import json
+import asyncio
+
+load_dotenv()
+
+WATSONX_API_KEY    = config.WATSONX_API_KEY
+WATSONX_PROJECT_ID = config.WATSONX_PROJECT_ID
+WATSONX_URL        = config.WATSONX_URL
+MODEL_ID           = config.MODEL_ID
+
+credentials = Credentials(url=WATSONX_URL,
+                          api_key=WATSONX_API_KEY)
+client = APIClient(credentials=credentials)
+params = {
+    'max_new_tokens': 512,
+}
+model = ModelInference(model_id=MODEL_ID, 
+                       api_client=client, 
+                       project_id=WATSONX_PROJECT_ID)
+
+
+def testModel():
+    messages = [
+        {"role": "user", "content": "Glaze Lebron like crazy"}
+    ]
+    response = model.chat(messages=messages)
+    print(response["choices"][0]["message"]["content"])
+
+
+
+def ask_llm(messages, tools):
+    """
+    Send a conversation to the LLM and return a structured response.
+
+    Args:
+        messages: list of message dicts with role and content
+        tools:    list of tool schemas from the MCP server
+
+    Returns:
+        {"type": "tool_call", "tool": str, "args": dict, "raw_message": dict}
+        {"type": "text", "content": str, "raw_message": dict}
+    """
+
+    response = model.chat(messages=messages, tools=tools)
+    message = response['choices'][0]['message']
+    if message.get('tool_calls'):
+        tool_name = message['tool_calls'][0]['function']['name']                      # Contains the name of the tool to call
+        tool_args = json.loads(message["tool_calls"][0]["function"]["arguments"])     # Contains the params of the tool to call
+        return {"type": "tool_call", 
+                "tool": tool_name, 
+                "args": tool_args,
+                "raw_message": message}
+
+    else:
+        content = message['content']
+        return {"type": "text",
+                "content": content,
+                "raw_message": message}
+
+
+
+if __name__ == '__main__':
+    testModel()
+
+
