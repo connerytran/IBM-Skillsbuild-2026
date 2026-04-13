@@ -66,6 +66,34 @@ def ask_llm(messages, tools):
 
 
 if __name__ == '__main__':
-    testModel()
+
+    test_tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "get_time_to_departure",
+                "description": "Returns the number of minutes remaining until flight DL447 departs.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                }
+            }
+        }
+    ]
+
+    test_messages = [
+        {
+            "role": "system",
+            "content": "You are a gate agent assistant monitoring flight DL447. Use the available tools to assess the flight status."
+        },
+        {
+            "role": "user",
+            "content": "How much time is left until departure?"
+        }
+    ]
+
+    result = ask_llm(test_messages, test_tools)
+    print(result)
 
 
