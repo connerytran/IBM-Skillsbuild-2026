@@ -52,9 +52,11 @@ def ask_llm(messages, tools):
     if message.get('tool_calls'):
         tool_name = message['tool_calls'][0]['function']['name']                      # Contains the name of the tool to call
         tool_args = json.loads(message["tool_calls"][0]["function"]["arguments"])     # Contains the params of the tool to call
+        tool_call_id = message['tool_calls'][0]['id']                                 # Contains the unique id of the tool call, which should be included in the tool response for context
         return {"type": "tool_call", 
                 "tool": tool_name, 
                 "args": tool_args,
+                "tool_call_id": tool_call_id,
                 "raw_message": message}
 
     else:
