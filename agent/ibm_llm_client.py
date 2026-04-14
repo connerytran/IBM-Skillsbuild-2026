@@ -25,16 +25,16 @@ model = ModelInference(model_id=MODEL_ID,
                        project_id=WATSONX_PROJECT_ID)
 
 
-def testModel():
+async def testModel():
     messages = [
         {"role": "user", "content": "Glaze Lebron like crazy"}
     ]
-    response = model.chat(messages=messages)
+    response = await model.chat(messages=messages)
     print(response["choices"][0]["message"]["content"])
 
 
 
-def ask_llm(messages, tools):
+async def ask_llm(messages, tools):
     """
     Send a conversation to the LLM and return a structured response.
 
@@ -47,7 +47,12 @@ def ask_llm(messages, tools):
         {"type": "text", "content": str, "raw_message": dict}
     """
 
-    response = model.chat(messages=messages, tools=tools)
+    loop = asyncio.get_event_loop()
+    response = await loop.run_in_executor(
+        None,
+        lambda: model.chat(messages=messages, tools=tools)
+    )
+
     message = response['choices'][0]['message']
     if message.get('tool_calls'):
         tool_name = message['tool_calls'][0]['function']['name']                      # Contains the name of the tool to call
@@ -95,7 +100,7 @@ if __name__ == '__main__':
         }
     ]
 
-    result = ask_llm(test_messages, test_tools)
+    result = asyncio.run(ask_llm(test_messages, test_tools))
     print(result)
 
 

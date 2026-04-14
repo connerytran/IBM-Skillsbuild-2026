@@ -1,3 +1,10 @@
-.venv
+# Python
+.venv/
 .env
-__pycache__
+__pycache__/
+*.pyc
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
