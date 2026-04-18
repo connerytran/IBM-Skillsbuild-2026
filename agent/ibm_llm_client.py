@@ -17,6 +17,7 @@ credentials = Credentials(url=WATSONX_URL,
 client = APIClient(credentials=credentials)
 params = {
     'max_new_tokens': 512,
+    'temperature': 0,
 }
 model = ModelInference(model_id=MODEL_ID, 
                        api_client=client, 
@@ -48,11 +49,12 @@ async def ask_llm(messages, tools):
     loop = asyncio.get_event_loop()
     response = await loop.run_in_executor(
         None,
-        lambda: model.chat(messages=messages, tools=tools)
+        lambda: model.chat(messages=messages, tools=tools, params=params)
     )
 
     message = response['choices'][0]['message']
     if message.get('tool_calls'):
+        # print(f"LLM requested {len(message['tool_calls'])} tool call(s): {[tc['function']['name'] for tc in message['tool_calls']]}")
         tool_name = message['tool_calls'][0]['function']['name']                      # Contains the name of the tool to call
         tool_args = json.loads(message["tool_calls"][0]["function"]["arguments"])     # Contains the params of the tool to call
         tool_call_id = message['tool_calls'][0]['id']                                 # Contains the unique id of the tool call, which should be included in the tool response for context

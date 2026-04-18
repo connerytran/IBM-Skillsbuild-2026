@@ -8,16 +8,6 @@ interface Alert {
   timestamp: Date;
 }
 
-function getRelativeTime(date: Date): string {
-  const now = new Date();
-  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (diff < 60) return 'Just now';
-  if (diff < 120) return '1 min ago';
-  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
-  if (diff < 7200) return '1 hour ago';
-  return `${Math.floor(diff / 3600)} hours ago`;
-}
 
 function formatTime(date: Date): string {
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -27,6 +17,7 @@ export default function App() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [connected, setConnected] = useState(false);
+  const [flightId, setFlightId] = useState<string | null>(null);
   const alertsScrollRef = useRef<HTMLDivElement>(null);
 
   // Show scrollbar only during active scroll
@@ -63,10 +54,11 @@ export default function App() {
             const content: string = data.content ?? '';
             const lowerContent = content.toLowerCase();
             const isWarning = /\b(do not|don't|wait|hold|delay|cannot|can't|not yet|caution)\b/.test(lowerContent);
+            if (data.flight_id) setFlightId(data.flight_id);
             const newAlert: Alert = {
               id: `alert-${Date.now()}`,
               type: isWarning ? 'warning' : 'success',
-              title: `Agent recommendation – ${data.flight_id ?? 'Flight'}`,
+              title: '',
               description: content,
               timestamp: new Date(data.timestamp ?? Date.now()),
             };
@@ -144,7 +136,7 @@ export default function App() {
                 letterSpacing: '-0.01em'
               }}
             >
-              Flight AA 1847 | DFW → ORD
+              {flightId ? `Flight ${flightId}` : 'Gate Monitor'}
             </div>
             <div
               style={{
@@ -153,7 +145,7 @@ export default function App() {
                 letterSpacing: '0.01em'
               }}
             >
-              Gate B12 | Departs 14:35 | 156 PAX
+              {flightId ? `Recommendations for ${flightId}` : 'Waiting for connection...'}
             </div>
           </div>
           <div className="text-right">
@@ -238,42 +230,34 @@ export default function App() {
                 animation: `slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s backwards`,
               }}
             >
-              {/* Title and Timestamps */}
-              <div className="flex items-start justify-between gap-4 mb-1">
-                <div
-                  style={{
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    color: '#1A1A1A',
-                    letterSpacing: '-0.01em'
-                  }}
-                >
-                  {alert.title}
-                </div>
-                <div className="flex flex-col items-end tabular-nums" style={{ flexShrink: 0 }}>
-                  <div style={{ fontSize: '11px', color: '#ABABAB' }}>
-                    {getRelativeTime(alert.timestamp)}
-                  </div>
-                  <div style={{
-                    fontSize: '11px',
-                    color: '#ABABAB',
-                    fontFamily: "'JetBrains Mono', monospace"
-                  }}>
-                    {formatTime(alert.timestamp)}
-                  </div>
-                </div>
-              </div>
-
               {/* Description */}
-              <div
-                style={{
-                  fontSize: '12px',
-                  color: '#6B6B6B',
-                  lineHeight: '1.5',
-                }}
-              >
-                {alert.description}
-              </div>
+              {(() => {
+                const lines = alert.description.split('\n').filter(l => l.trim());
+                const headlineIndex = lines.findLastIndex(l => /^\[?(CLOSE GATE|HOLD GATE|OPEN GATE)/i.test(l.trim()));
+                const headline = headlineIndex >= 0 ? lines[headlineIndex] : '';
+                const summary = headlineIndex >= 0 && headlineIndex + 1 < lines.length ? lines[headlineIndex + 1] : '';
+                const bullets = lines.filter((_, i) => i !== headlineIndex && i !== headlineIndex + 1);
+                return (
+                  <>
+                    <div className="flex items-baseline justify-between gap-4" style={{ marginBottom: '4px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#1A1A1A' }}>
+                        {headline}
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#ABABAB', fontFamily: "'JetBrains Mono', monospace", flexShrink: 0 }}>
+                        {formatTime(alert.timestamp)}
+                      </span>
+                    </div>
+                    {summary && (
+                      <div style={{ fontSize: '12px', color: '#6B6B6B', marginBottom: '8px' }}>
+                        {summary}
+                      </div>
+                    )}
+                    <div style={{ fontSize: '12px', color: '#6B6B6B', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                      {bullets.join('\n')}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>
