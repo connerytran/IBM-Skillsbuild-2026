@@ -1,0 +1,17 @@
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ibm-skillsbuild-agent:latest
+    container_name: ibm-skillsbuild-agent
+    env_file:
+      - .env
+    ports:
+      # WebSocket server that broadcasts recommendations to the frontend
+      - "8765:8765"
+    # Default command runs main.py (agent loop + WebSocket server).
+    # To run the MCP server instead: `docker compose run --rm agent python mcp_server.py`
+    # To seed the database:          `docker compose run --rm agent python /app/setup/seed_database.py`
+    command: ["python", "main.py"]
+    restart: "no"

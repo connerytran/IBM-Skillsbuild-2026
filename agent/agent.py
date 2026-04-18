@@ -23,23 +23,14 @@ class Agent:
         }
         self.conversation = [self.system_prompt, self.user_prompt]
 
-
-
-
     async def start_agent(self):
         """Starts the agent's main loop."""
         await self._get_tools()
         await self._agent_loop(interval=60)  # Run agent loop every 60 seconds
 
-
-
     def stop_agent(self):
         """Stops the agent's main loop."""
         self.is_running = False
-
-
-
-
 
     async def _agent_loop(self, interval: int = 60):
         self.is_running = True
@@ -52,10 +43,6 @@ class Agent:
             
             self.conversation = [self.system_prompt, self.user_prompt]   # Reset conversation history for the next iteration
             await asyncio.sleep(interval)  # Sleep briefly to ensure any ongoing processes are completed before fully stopping the agent
-
-
-
-
 
     async def _get_recommendation(self):
         """Main loop for getting recommendations from the LLM based on the conversation history."""
@@ -93,27 +80,9 @@ class Agent:
         
         return None
 
-
-
     async def _get_tools(self):
         """Gets the list of available tools from the MCP server."""
-        self.tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_time_to_departure",
-                    "description": "Returns the number of minutes remaining until flight DL447 departs.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {},
-                        "required": []
-                    }
-                }
-            }
-        ]
-
-
-
+        self.tools = get_available_tools()
 
     async def _execute_tool_call(self, tool_name, tool_args, tool_call_id):
         """Executes a tool on the MCP server and returns its contents."""
@@ -124,36 +93,15 @@ class Agent:
             "content": result,
         }
 
-    def _send_recommendation(self, recommendation):
-        print(f"Agent recommendation: {recommendation}")
-        return
-
-
-def main():
-    tools = get_available_tools()
-    agent = Agent(tools)
-    agent.start_agent()
-        return tool_response
-
-
-
-
-
     async def _send_recommendation(self, recommendation):
-
+        """Broadcasts the LLM recommendation to all connected frontend clients."""
         message = json.dumps({
             "type": "recommendation",
             "flight_id": "DL447",
             "content": recommendation,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         })
 
         # Send the recommendation to all connected clients
         await self.websocket_server.broadcast(message)
         print("Message broadcasted.")
-
-
-
-
-
-
