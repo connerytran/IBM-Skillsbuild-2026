@@ -71,15 +71,9 @@ class Agent:
             await self._get_tools()
             await self._agent_loop(interval=60)  # Run agent loop every 60 seconds
 
-
-
     def stop_agent(self):
         """Stops the agent's main loop."""
         self.is_running = False
-
-
-
-
 
     async def _agent_loop(self, interval: int = 60):
         self.is_running = True
@@ -92,10 +86,6 @@ class Agent:
             
             self.conversation = [self.system_prompt, self.user_prompt]   # Reset conversation history for the next iteration
             await asyncio.sleep(interval)  # Sleep briefly to ensure any ongoing processes are completed before fully stopping the agent
-
-
-
-
 
     async def _get_recommendation(self):
         """Main loop for getting recommendations from the LLM based on the conversation history."""
@@ -179,12 +169,12 @@ class Agent:
 
 
     async def _send_recommendation(self, recommendation):
-
+        """Broadcasts the LLM recommendation to all connected frontend clients."""
         message = json.dumps({
             "type": "recommendation",
             "flight_id": "DL447",
             "content": recommendation,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         })
 
         # Send the recommendation to all connected clients
