@@ -9,8 +9,8 @@ from typing import List, Dict
 class Agent:
     """Agent class that maintains conversation history and interacts with the LLM client."""
 
-    def __init__(self, tools: List[Dict], websocket_server):
-        self.tools = tools
+    def __init__(self, websocket_server):
+        self.tools = None
         self.websocket_server = websocket_server
         self.is_running = False
         self.system_prompt = {
@@ -19,7 +19,7 @@ class Agent:
         }
         self.user_prompt = {
             "role": "user",  
-            "content": "Please check the current status of flight DL447 and provide a recommendation on whether to close the gate."
+            "content": "Please check the current status of flight DL447 and provide a short recommendation on whether to close the gate."
         }
         self.conversation = [self.system_prompt, self.user_prompt]
 
@@ -28,6 +28,7 @@ class Agent:
 
     async def start_agent(self):
         """Starts the agent's main loop."""
+        await self._get_tools()
         await self._agent_loop(interval=60)  # Run agent loop every 60 seconds
 
 
@@ -49,7 +50,7 @@ class Agent:
             except Exception as e:
                 print(f"Error occurred in agent loop: {e}")
             
-            self.conversation = [self.system_prompt, self.user_prompt]
+            self.conversation = [self.system_prompt, self.user_prompt]   # Reset conversation history for the next iteration
             await asyncio.sleep(interval)  # Sleep briefly to ensure any ongoing processes are completed before fully stopping the agent
 
 
@@ -75,19 +76,41 @@ class Agent:
 
                 # If it's a tool call, execute the tool and add the response to the conversation history
                 if response_type == "tool_call":
+                    print("Received tool call from LLM. Executing tool...")
                     tool_name = response.get("tool")
                     tool_args = response.get("args")
                     tool_call_id=response.get("tool_call_id")
                     tool_response = await self._execute_tool_call(tool_name, tool_args, tool_call_id)
+                    print("Tool executed.")
                     self.conversation.append(tool_response)
 
                 # If it's a text recommendation, send the recommendation and break the loop
                 elif response_type == "text": 
+                    print("Received recommendation from LLM.")
                     recommendation = response.get("content")
                     await self._send_recommendation(recommendation)
                     return
         
         return None
+
+
+
+    async def _get_tools(self):
+        """Gets the list of available tools from the MCP server."""
+        self.tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_time_to_departure",
+                    "description": "Returns the number of minutes remaining until flight DL447 departs.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
+                }
+            }
+        ]
 
 
 
@@ -125,27 +148,3 @@ class Agent:
 
 
 
-# def main(websocket_server: WebSocketServer):
-
-#     tools = [
-#         {
-#             "type": "function",
-#             "function": {
-#                 "name": "get_time_to_departure",
-#                 "description": "Returns the number of minutes remaining until flight DL447 departs.",
-#                 "parameters": {
-#                     "type": "object",
-#                     "properties": {},
-#                     "required": []
-#                 }
-#             }
-#         }
-#     ]
-
-#     agent = Agent(tools, websocket_server)
-#     asyncio.run(agent.start_agent())
-
-
-# if __name__ == '__main__':
-#     websocket_server = WebSocketServer()
-#     main(websocket_server)
