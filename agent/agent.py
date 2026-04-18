@@ -1,8 +1,6 @@
-
-
-import asyncio
 from datetime import datetime
 from ibm_llm_client import ask_llm
+from mcp_server import get_available_tools, call_tool
 
 
 class Agent:
@@ -66,15 +64,12 @@ class Agent:
 
     def _execute_tool_call(self, tool_name, tool_args, tool_call_id):
         """Executes a tool on the MCP server and returns its contents."""
-        # For the sake of this example, we'll mock the tool response. In a real implementation, this would involve making an API call to the MCP server with the tool name and args,
-        # and then adding the response back to the conversation history.
-        tool_response = {
+        result = call_tool(tool_name, tool_args)
+        return {
             "role": "tool",
             "tool_call_id": tool_call_id,
-            "content": "15 more minutes until flight departs."
+            "content": result,
         }
-
-        return tool_response
 
     def _send_recommendation(self, recommendation):
         print(f"Agent recommendation: {recommendation}")
@@ -82,22 +77,7 @@ class Agent:
 
 
 def main():
-
-    tools = [
-        {
-            "type": "function",
-            "function": {
-                "name": "get_time_to_departure",
-                "description": "Returns the number of minutes remaining until flight DL447 departs.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                }
-            }
-        }
-    ]
-
+    tools = get_available_tools()
     agent = Agent(tools)
     agent.start_agent()
 

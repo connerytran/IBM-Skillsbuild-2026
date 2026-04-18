@@ -1,5 +1,3 @@
-
-
 from ibm_watsonx_ai import Credentials, APIClient
 from dotenv import load_dotenv
 from ibm_watsonx_ai.foundation_models import ModelInference
