@@ -11,7 +11,7 @@ logging.getLogger("websockets").setLevel(logging.CRITICAL)
 class WebSocketServer:
      
      
-    def __init__(self, host: str="127.0.0.1", port: int=8765):
+    def __init__(self, host: str="0.0.0.0", port: int=8765):
         self.host = host
         self.port = port
         self.connected_clients: Set[websockets.WebSocketServerProtocol] = set() # Set to keep track of connected clients for WebSocket communication
