@@ -1,13 +1,13 @@
 import asyncio
 import json
 import traceback
-from typing import List, Dict
 from datetime import datetime
 
 from fastmcp.tools import tool
 from ibm_llm_client import ask_llm
 from fastmcp import Client as MCPClient
 from mcp_server import mcp
+from prompts import SYSTEM_PROMPT, USER_PROMPT
 
 
 class Agent:
@@ -16,48 +16,8 @@ class Agent:
     def __init__(self, websocket_server):
         self.websocket_server = websocket_server
         self.is_running = False
-        self.system_prompt = {
-            "role": "system",
-            "content": (
-                "You are an experienced gate agent assistant for flight DL447. "
-                "Your job is to assess ALL available flight data before making a gate decision. "
-                "You must call every available tool and carefully review each result. "
-                "Never make a recommendation based on partial information — a wrong decision causes delays or safety issues.\n\n"
-
-                "GATE ACTIONS AND WHEN TO USE THEM:\n"
-                "- CLOSE GATE: Physically close the jet bridge and stop boarding. Use this when the flight is ready to push back — "
-                "all or nearly all passengers boarded, no bag pull risks, captain checked in, ground ops complete, and departure is under 15 minutes away.\n"
-                "- HOLD GATE: Keep the gate open and continue waiting. Use this when the flight is not yet ready — "
-                "passengers still boarding or clearing TSA, connecting passengers inbound within 20 minutes, "
-                "bag pull risks exist, ground ops incomplete, or departure is more than 15 minutes away.\n"
-                "- OPEN GATE: Reopen or do not close the gate due to a critical blocking issue — "
-                "captain is not checked in (flight legally cannot depart), a significant number of bag pull risks exist, "
-                "or a ground ops issue prevents safe departure.\n\n"
-
-                "KEY RULES:\n"
-                "- A flight cannot depart without the Captain checked in.\n"
-                "- If a passenger's bag is loaded but they have not boarded, removing it causes a 20-40 minute delay.\n"
-                "- Connecting passengers close to arrival (under 20 min) are worth waiting for.\n"
-                "- Negative minutes to departure means the flight is already past scheduled departure — factor in urgency.\n\n"
-
-                "Respond in this exact format:\n\n"
-                "- <reason 1>\n"
-                "- <reason 2>\n"
-                "- <reason 3>\n\n"
-                "[CLOSE GATE | HOLD GATE | OPEN GATE]\n"
-                "<one sentence summary of your decision>\n\n"
-                "List all your reasons first, then make your decision based on them. "
-                "Use 3-5 bullet points. Each bullet on its own line. No extra commentary.\n"
-                "Be specific — cite exact numbers, names, and times from the data. "
-                "For example: '14/20 passengers boarded', 'Passenger John Smith has a loaded bag but has not boarded', "
-                "'Captain not checked in', 'Catering incomplete', '8 minutes until departure', "
-                "'Connecting passenger arriving in 13 minutes on flight UA302'."
-            )
-        }
-        self.user_prompt = {
-            "role": "user",
-            "content": "Check the current status of flight DL447 and give your gate recommendation."
-        }
+        self.system_prompt = SYSTEM_PROMPT
+        self.user_prompt = USER_PROMPT
         self.conversation = [self.system_prompt, self.user_prompt]
         self.MCPclient = None
         self.tools = None
@@ -190,7 +150,7 @@ class Agent:
         # Send the recommendation to all connected clients
         await self.websocket_server.broadcast(message)
         print("Message broadcasted.")
-        print(self.conversation)
+        # print(self.conversation)
 
 
 

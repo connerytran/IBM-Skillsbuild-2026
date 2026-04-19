@@ -95,10 +95,15 @@ export default function App() {
   }, []);
 
   return (
-    <div className="h-screen w-full overflow-hidden flex items-center justify-center p-8" style={{
+    <div className="h-screen w-full overflow-hidden flex flex-col p-8" style={{
       fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif",
       background: 'linear-gradient(135deg, #F0F2F5 0%, #F8F9FA 100%)'
     }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: '12px' }}>
+        <img src="/GateGuruLogo.png" alt="GateGuru" style={{ height: '30px' }} />
+        <img src="/PoweredByWatsonx.png" alt="Powered by watsonx" style={{ height: '18px', marginTop: '4px' }} />
+      </div>
+      <div className="flex-1 flex items-center justify-center overflow-hidden">
       <div
         className="w-full max-w-5xl relative flex flex-col"
         style={{
@@ -107,7 +112,7 @@ export default function App() {
           borderRadius: '8px',
           padding: '20px',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06)',
-          maxHeight: 'calc(100vh - 4rem)',
+          maxHeight: '100%',
         }}
       >
         {/* Subtle grid pattern overlay */}
@@ -137,15 +142,6 @@ export default function App() {
               }}
             >
               {flightId ? `Flight ${flightId}` : 'Gate Monitor'}
-            </div>
-            <div
-              style={{
-                fontSize: '13px',
-                color: '#5F5E5A',
-                letterSpacing: '0.01em'
-              }}
-            >
-              {flightId ? `Recommendations for ${flightId}` : 'Waiting for connection...'}
             </div>
           </div>
           <div className="text-right">
@@ -223,8 +219,8 @@ export default function App() {
             <div
               key={alert.id}
               style={{
-                backgroundColor: '#F0F4FF',
-                border: '1px solid #D8E0F5',
+                backgroundColor: '#F4F4F5',
+                border: '1px solid #E4E4E7',
                 borderRadius: '6px',
                 padding: '12px 16px',
                 animation: `slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s backwards`,
@@ -262,6 +258,7 @@ export default function App() {
           ))}
         </div>
       </div>
+      </div>
 
       <style>{`
         .alerts-scroll::-webkit-scrollbar {
@@ -276,7 +273,7 @@ export default function App() {
           transition: background 1.2s ease;
         }
         .alerts-scroll.is-scrolling::-webkit-scrollbar-thumb {
-          background: #A0AACF;
+          background: #A1A1AA;
         }
 
         @keyframes slideIn {
