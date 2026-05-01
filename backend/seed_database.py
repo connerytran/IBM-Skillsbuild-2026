@@ -14,8 +14,7 @@ Creates flight DL447 with four pre-built scenarios:
 import sys
 import os
 
-# Add the agent directory to the path so we can import config
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'agent'))
+sys.path.insert(0, os.path.dirname(__file__))
 
 from supabase import create_client
 from datetime import datetime, timedelta, timezone

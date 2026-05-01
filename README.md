@@ -1,47 +1,61 @@
-# IBM-Skillsbuild-2026
+# GateGuru
 
-## Architecture
+An AI-powered gate agent assistant that monitors flight DL447 in real time and broadcasts recommendations to a live dashboard.
 
-### Component Overview
+---
 
-```mermaid
-graph TD
-    Main[main.py] -->|instantiates| WS[WebSocketServer]
-    Main -->|instantiates, passes WS| A[Agent]
-    Main -->|asyncio.gather| A
-    Main -->|asyncio.gather| WS
-    A -->|ask_llm| LLM[ibm_llm_client.py]
-    A -->|get_tools / execute_tool_call| MCP[MCP Server]
-    A -->|broadcast| WS
-    LLM -->|model.chat| IBM[IBM watsonx AI]
+## Prerequisites
+
+Create a `.env` file in the project root:
+
+```env
+WATSONX_API_KEY=your_key
+WATSONX_PROJECT_ID=your_project_id
+WATSONX_URL=https://us-south.ml.cloud.ibm.com
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
 ```
 
-### Runtime Flow
+---
 
-```mermaid
-sequenceDiagram
-    participant Main as main.py
-    participant WS as WebSocketServer
-    participant A as Agent
-    participant LLM as ibm_llm_client
-    participant MCP as MCP Server
+## Option 1 — Docker (recommended)
 
-    Main->>WS: WebSocketServer()
-    Main->>A: Agent(websocket_server)
-    Main->>WS: start_server() [concurrent]
-    Main->>A: start_agent() [concurrent]
+**Requires:** Docker Desktop
 
-    A->>MCP: _get_tools()
-    MCP-->>A: tools[]
-
-    loop every 60s
-        A->>LLM: ask_llm(conversation, tools)
-        LLM-->>A: {type: "tool_call", tool, args}
-        A->>MCP: _execute_tool_call(name, args)
-        MCP-->>A: tool_response
-        A->>LLM: ask_llm(conversation, tools)
-        LLM-->>A: {type: "text", content: recommendation}
-        A->>WS: broadcast(recommendation)
-        WS-->>A: sent to all clients
-    end
+```bash
+docker compose up --build
 ```
+
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- The database is seeded automatically on startup.
+
+To stop: `Ctrl+C`, then `docker compose down`
+
+---
+
+## Option 2 — Manual
+
+**Requires:** Python 3.11 or 3.12 (ibm_watsonx_ai library has issues with later versions), Node 20+
+
+
+### Frontend
+
+Open a separate terminal:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+- Frontend: [http://localhost:5173](http://localhost:5173)
+
+### Backend
+
+```bash
+pip install -r requirements.txt
+cd backend
+python seed_database.py
+python main.py
+```
+
