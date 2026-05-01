@@ -1,0 +1,17 @@
+# Dependencies — reinstalled fresh inside the container by npm ci
+node_modules/
+
+# Previous build output — rebuilt inside the container by vite build
+dist/
+
+# Environment / secrets
+.env
+.env.*
+
+# Git
+.git/
+.gitignore
+
+# Docs / guidelines (not needed at runtime)
+*.md
+guidelines/

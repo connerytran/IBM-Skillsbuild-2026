@@ -1,0 +1,30 @@
+services:
+
+  # ── Backend (Python / FastMCP / WebSocket) ───────────────────────────────────
+  backend:
+    build:
+      # Root context so backend/Dockerfile can reach requirements.txt
+      context: .
+      dockerfile: backend/Dockerfile
+    image: ibm-skillsbuild-backend:latest
+    container_name: ibm-skillsbuild-backend
+    env_file:
+      - .env
+    ports:
+      # WebSocket server — frontend connects here for live recommendations
+      - "8765:8765"
+    restart: "no"
+
+  # ── Frontend (React / Vite → nginx) ──────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: ibm-skillsbuild-frontend:latest
+    container_name: ibm-skillsbuild-frontend
+    ports:
+      # nginx inside the container listens on 80; exposed as 3000 on your machine
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: "no"
