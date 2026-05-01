@@ -6,6 +6,14 @@ An AI-powered gate agent assistant that monitors flight DL447 in real time and b
 
 ## Prerequisites
 
+### 1. Supabase setup
+
+1. Create a free project at [supabase.com](https://supabase.com)
+2. Go to **SQL Editor** and run the contents of `schema.sql` to create the tables
+3. Go to **Project Settings → API** to find your URL and anon key
+
+### 2. Environment variables
+
 Create a `.env` file in the project root:
 
 ```env
@@ -13,7 +21,7 @@ WATSONX_API_KEY=your_key
 WATSONX_PROJECT_ID=your_project_id
 WATSONX_URL=https://us-south.ml.cloud.ibm.com
 SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_key
+SUPABASE_KEY=your_supabase_anon_key
 ```
 
 ---
